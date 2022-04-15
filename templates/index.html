@@ -1,0 +1,140 @@
+ <!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>CHATBOT PENDIDIKAN ANAK DALAM ISLAM</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+  <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Open+Sans'>
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.3/jquery.mCustomScrollbar.min.css'>
+  <link rel="stylesheet" href="{{ url_for('static',filename='css/style.css') }}">
+
+</head>
+
+<body>
+
+<div class="chat">
+  <div class="chat-title">
+    <h1>CHATPENAKDIS</h1>
+    <figure class="avatar">
+      <img src="{{ url_for('static',filename='img/logo-fiks.jpg') }}" /></figure>
+  </div>
+
+  <div class="messages" id="messages">
+
+	<!-- bot -->
+	<div class="message new" style="left: 10px;margin-right: 15px;">
+		<figure class="avatar" ><img src="{{ url_for('static',filename='img/logo-fiks.jpg') }}"></figure>
+	  	Assalaamu'alaikum.. <br>
+		Halo saya CHATPENAKDIS, Chatbot Pendidikan Anak Dalam Islam, silahkan tanyakan apapun tentang <b>Pendidikan Anak Dalam Islam</b><br>
+		Untuk bertanya silahkan ketik pertanyaan di kolom bagian bawah, lalu klik kirim<br>
+		Contoh mengetik pertanyaan "Apa itu pendidikan?"<br>
+	</div> 
+	  
+  </div>
+
+	<form id="chatform" method="post">
+	  <div class="message-box">
+	    <input type="text" id="chatinput" name="chatinput"  method="post" class="message-input" placeholder="Ketik pertanyaan disini..."/>
+	    <button type="submit" class="message-submit">&#9992; Kirim</button>
+	  </div>
+	</form>
+</div>
+
+<div class="bg"></div>
+  	<script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+	<script src='https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.3/jquzzry.mCustomScrollbar.concat.min.js'></script>
+	<script type="text/javascript" src="{{ url_for('static',filename='jquery.min.js') }}"></script>
+	<script type="text/javascript">
+
+		var last_ans_choices = null;
+		$("#chatform").submit(function(event) {
+			event.preventDefault();
+			var msg = $("#chatinput").val();
+			createMyMessage(msg);
+			var xhttp = new XMLHttpRequest();
+			xhttp.onreadystatechange = function() {
+				if (this.readyState == 4 && this.status == 200) {
+					if (xhttp.responseText.startsWith("[")) {
+						last_ans_choices = eval(xhttp.responseText);
+						createBotMessageChoices();
+					}
+					else
+						createBotMessage(xhttp.responseText);
+				}
+			};
+			if (last_ans_choices != null) {
+				xhttp.open("GET", "http://localhost:5000/get?msg=" + encodeURIComponent(last_ans_choices[parseInt(msg)]), true);
+				xhttp.send();
+				last_ans_choices = null;
+			}
+			else {
+				xhttp.open("GET", "http://localhost:5000/get?msg=" + encodeURIComponent(msg), true);
+				xhttp.send();
+			}
+		});
+
+		function createMyMessage(msg) {
+			var dt = new Date();
+			var dd = dt.getHours();
+			var mm = dt.getMinutes();
+			if (mm < 10) mm = "0" + mm;
+			$(".messages").append(`
+				<div class="message message-personal" style="margin-right: 10px; ">
+				${msg}
+				<div class="timestamp">${dd}:${mm}</div>
+	 			</div>`);
+			$("#chatinput").val("");
+			// updateScrollbar();
+			var messagesHistoryElement = document.getElementById("messages");
+			messagesHistoryElement.scrollTop = messagesHistoryElement.scrollHeight;
+			// updateScrollbar();
+			
+		}
+
+		$(window).on('keydown', function(e) {
+		  if (e.which == 13) {
+		    insertMessage();
+		    return false;
+		  }
+		})
+		function createBotMessage(msg) {
+			var dt = new Date();
+			var dd = dt.getHours();
+			var mm = dt.getMinutes();
+			if (mm < 10) mm = "0" + mm;
+			$(".messages").append(`
+				<div class="message new" style="left: 10px;margin-right: 15px;" >
+			  	<figure class="avatar" ><img src="{{ url_for('static',filename='img/logo-fiks.jpg') }}"></figure>
+			  	${msg}
+			  	<div class="timestamp">${dd}:${mm}</div>
+				</div>`);
+			var messagesHistoryElement = document.getElementById("messages");
+			messagesHistoryElement.scrollTop = messagesHistoryElement.scrollHeight;
+			// updateScrollbar();
+		}
+
+		function createBotMessageChoices() {
+			//last_ans_choices
+			var dt = new Date();
+			var dd = dt.getHours();
+			var mm = dt.getMinutes();
+			if (mm < 10) mm = "0" + mm;
+			let msg = "Maaf, Tabot ga ngerti. Mungkin pertanyaan yang kamu maksud ada di pertanyaan berikut ini <b>[INPUT KODE SOAL]</b> :<br/>";
+			for (let i in last_ans_choices) {
+				msg += i + ": " + last_ans_choices[i] + "<br/>";
+			}
+			$(".messages").append(`
+				<div class="message new" style="left: 10px">
+			  	<figure class="avatar" ><img src="{{ url_for('static',filename='img/logo-fiks.jpg') }}"></figure>
+			  	${msg}
+			  	<div class="timestamp">${dd}:${mm}</div>
+				</div>`);
+			var messagesHistoryElement = document.getElementById("messages");
+			messagesHistoryElement.scrollTop = messagesHistoryElement.scrollHeight;
+			// updateScrollbar();
+		}
+
+	</script>
+</body>
+</html>
